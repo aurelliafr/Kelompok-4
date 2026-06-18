@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Klasifikasi Tingkat Obesitas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Kelompok 3 &mdash; Machine Learning</p>
+    <h1>Klasifikasi Tingkat Obesitas</h1>
+    <p class="hero-sub">Neural Network (MLP Classifier) dilatih untuk mengelompokkan seseorang
+      ke dalam 7 kategori tingkat berat badan berdasarkan data gaya hidup, kebiasaan makan,
+      dan kondisi fisik.</p>
+
+    <div class="hero-stat">
+      <svg class="ring" viewBox="0 0 160 160" width="160" height="160">
+        <circle class="ring-bg" cx="80" cy="80" r="68"></circle>
+        <circle class="ring-fg" id="accuracyRing" cx="80" cy="80" r="68"
+                data-accuracy="{{ accuracy }}"></circle>
+      </svg>
+      <div class="ring-label">
+        <span class="ring-number">{{ "%.1f"|format(accuracy * 100) }}%</span>
+        <span class="ring-caption">Akurasi model</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- 01 Dataset -->
+  <section class="block">
+    <p class="section-eyebrow">01 &mdash; Dataset</p>
+    <h2>Gambaran Data</h2>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-number">{{ dataset_info.n_rows }}</span>
+        <span class="stat-label">Baris data</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ dataset_info.n_cols }}</span>
+        <span class="stat-label">Kolom / fitur</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ dataset_info.missing_values }}</span>
+        <span class="stat-label">Nilai kosong (missing)</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">7</span>
+        <span class="stat-label">Kelas target</span>
+      </div>
+    </div>
+    <p class="caption">Kolom: {{ dataset_info.columns | join(', ') }}</p>
+  </section>
+
+  <!-- 02 EDA -->
+  <section class="block">
+    <p class="section-eyebrow">02 &mdash; Exploratory Data Analysis</p>
+    <h2>Pola dalam Data</h2>
+    <div class="img-grid">
+      <figure>
+        <img src="{{ url_for('static', filename='img/distribusi.png') }}" alt="Distribusi tingkat obesitas">
+        <figcaption>Distribusi jumlah data di setiap kategori <code>NObeyesdad</code>.</figcaption>
+      </figure>
+      <figure>
+        <img src="{{ url_for('static', filename='img/korelasi.png') }}" alt="Heatmap korelasi">
+        <figcaption>Korelasi antar fitur numerik (Age, Height, Weight, dst).</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 03 Model -->
+  <section class="block">
+    <p class="section-eyebrow">03 &mdash; Model &amp; Evaluasi</p>
+    <h2>Neural Network (MLP Classifier)</h2>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-number">{{ hidden_layer_sizes | join(', ') }}</span>
+        <span class="stat-label">Neuron per hidden layer</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ n_iter }}</span>
+        <span class="stat-label">Iterasi training</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ train_size }}</span>
+        <span class="stat-label">Data training</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ test_size }}</span>
+        <span class="stat-label">Data testing</span>
+      </div>
+    </div>
+
+    <h3 class="sub-h">Classification Report</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Kelas</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1-score</th>
+            <th>Support</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report_rows %}
+          <tr>
+            <td>{{ row.label }}</td>
+            <td>{{ "%.2f"|format(row.precision) }}</td>
+            <td>{{ "%.2f"|format(row.recall) }}</td>
+            <td>{{ "%.2f"|format(row.f1_score) }}</td>
+            <td>{{ row.support }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          {% for row in summary_rows %}
+          <tr>
+            <td>{{ row.label }}</td>
+            <td>{{ "%.2f"|format(row.precision) }}</td>
+            <td>{{ "%.2f"|format(row.recall) }}</td>
+            <td>{{ "%.2f"|format(row.f1_score) }}</td>
+            <td>{{ row.support }}</td>
+          </tr>
+          {% endfor %}
+        </tfoot>
+      </table>
+    </div>
+
+    <h3 class="sub-h">Confusion Matrix</h3>
+    <div class="img-grid img-grid-single">
+      <figure>
+        <img src="{{ url_for('static', filename='img/confusion_matrix.png') }}" alt="Confusion matrix">
+        <figcaption>Prediksi vs. aktual pada data testing.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 04 Coba Sendiri -->
+  <section class="block">
+    <p class="section-eyebrow">04 &mdash; Coba Sendiri</p>
+    <h2>Prediksi dengan Data Kamu</h2>
+    <p class="caption" style="margin-bottom:24px;">Isi data di bawah, model Neural Network yang
+      sudah dilatih akan langsung memprediksi kategori tingkat berat badannya.</p>
+
+    <form method="POST" action="{{ url_for('predict') }}" class="predict-form">
+      <div class="form-grid">
+        {% for field in form_fields %}
+        <div class="form-field">
+          <label for="{{ field.name }}">{{ field.label }}</label>
+          {% if field.type == 'select' %}
+          <select name="{{ field.name }}" id="{{ field.name }}">
+            {% for opt in field.options %}
+            <option value="{{ opt }}" {% if opt == field.value %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+          {% else %}
+          <input type="number" step="0.1" name="{{ field.name }}" id="{{ field.name }}"
+                 min="{{ field.min }}" max="{{ field.max }}" value="{{ field.value }}" required>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn-predict">Prediksi Sekarang</button>
+    </form>
+
+    {% if prediction %}
+    <div class="result-card">
+      <p class="result-eyebrow">Hasil prediksi model</p>
+      <p class="result-label">{{ prediction.label.replace('_', ' ') }}</p>
+      <p class="result-confidence">Tingkat keyakinan: {{ "%.1f"|format(prediction.confidence) }}%</p>
+
+      <div class="prob-bars">
+        {% for p in prediction.prob_rows %}
+        <div class="prob-row">
+          <span class="prob-label">{{ p.label.replace('_', ' ') }}</span>
+          <div class="prob-track">
+            <div class="prob-fill" style="width: {{ p.prob }}%"></div>
+          </div>
+          <span class="prob-value">{{ "%.1f"|format(p.prob) }}%</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+</main>
+
+<footer>
+  <p>Dibuat dengan Flask &middot; model dilatih ulang lewat <code>train_model.py</code></p>
+</footer>
+
+<script>
+  const ring = document.getElementById("accuracyRing");
+  const circumference = 2 * Math.PI * 68; // r = 68
+  const accuracy = parseFloat(ring.dataset.accuracy);
+  ring.style.strokeDasharray = `${(accuracy * circumference).toFixed(1)} ${circumference.toFixed(2)}`;
+</script>
+</body>
+</html>
